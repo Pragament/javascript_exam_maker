@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+  <header>
+    <h1>Teacher Dashboard</h1>
+    <div class="user-info">
+      <span id="teacher-email"></span>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="create-exam card">
+      <h2>Create New Exam</h2>
+      <div class="form-group">
+        <label for="exam-name">Exam Name</label>
+        <input type="text" id="exam-name" placeholder="Midterm Exam">
+      </div>
+      <div class="form-group">
+        <label for="exam-class">Class</label>
+        <input type="text" id="exam-class" placeholder="CS-101">
+      </div>
+      <button class="btn-primary" onclick="createNewExam()">Create Exam</button>
+    </section>
+
+    <section class="exams-list">
+      <h2>Your Exams</h2>
+      <div id="exams-container" class="cards-container">
+        <!-- Exams will be loaded here -->
+      </div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/teacher.js"></script>
+</body>
+</html>

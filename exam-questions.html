@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Exam Questions</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1 id="exam-title">Exam Questions</h1>
+    <div class="user-info">
+      <span id="teacher-email"></span>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="back-link">
+      <a href="teacher.html">&larr; Back to Dashboard</a>
+    </div>
+
+    <section class="add-question card">
+      <h2>Add New Question</h2>
+      <div class="form-group">
+        <label for="question-title">Title</label>
+        <input type="text" id="question-title" placeholder="Question title">
+      </div>
+      <div class="form-group">
+        <label for="question-description">Description</label>
+        <textarea id="question-description" rows="4" placeholder="Detailed question description"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="question-topics">Topics (comma separated)</label>
+        <input type="text" id="question-topics" placeholder="Topic1, Topic2, Topic3">
+      </div>
+      <div class="form-group">
+        <label for="question-subtopics">Subtopics (comma separated)</label>
+        <input type="text" id="question-subtopics" placeholder="Subtopic1, Subtopic2">
+      </div>
+      <div class="form-group">
+        <label for="question-plan">Plan/Guidelines</label>
+        <textarea id="question-plan" rows="3" placeholder="Solution plan or guidelines"></textarea>
+      </div>
+      <button class="btn-primary" onclick="addQuestion()">Add Question</button>
+    </section>
+
+    <section class="import-questions card">
+      <h2>Import Questions from CSV</h2>
+      <div class="form-group">
+        <label for="csv-file">CSV File</label>
+        <input type="file" id="csv-file" accept=".csv">
+      </div>
+      <button class="btn-secondary" onclick="importQuestions()">Import Questions</button>
+      <p class="hint">CSV format: Title,Description,Topics,Subtopics,Plan</p>
+    </section>
+
+    <section class="questions-list">
+      <h2>Exam Questions</h2>
+      <div id="questions-container" class="cards-container">
+        <!-- Questions will be loaded here -->
+      </div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/exam-questions.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exam Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1>Exam Portal</h1>
+      
+      <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('student')">Student</button>
+        <button class="tab-btn" onclick="openTab('teacher')">Teacher</button>
+      </div>
+      
+      <div id="student-tab" class="tab-content active">
+        <h2>Enter Exam</h2>
+        <div class="form-group">
+          <label for="exam-code">Exam Code</label>
+          <input type="text" id="exam-code" placeholder="6-digit code">
+        </div>
+        <div class="form-group">
+          <label for="roll-number">Roll Number</label>
+          <input type="text" id="roll-number" placeholder="Your roll number">
+        </div>
+        <button class="btn-primary" onclick="studentEnterExam()">Enter Exam</button>
+        <p id="student-error" class="error-message"></p>
+      </div>
+      
+      <div id="teacher-tab" class="tab-content">
+        <h2>Teacher Login</h2>
+        <button class="btn-google" onclick="teacherLogin()">
+          <img src="assets/google-icon.png" alt="Google icon">
+          Login with Google
+        </button>
+        <p id="auth-error" class="error-message"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/student.js"></script>
+</body>
+</html>
