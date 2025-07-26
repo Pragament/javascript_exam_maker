@@ -29,6 +29,7 @@ async function studentEnterExam() {
     errorElement.textContent = 'Exam code must be 6 digits';
     return;
   }
+  localStorage.setItem('rollNumber', rollNumber);
   
   try {
     // Find exam by code
