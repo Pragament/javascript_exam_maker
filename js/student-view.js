@@ -29,7 +29,6 @@ async function showAvailableQuestions() {
   try {
     const questionsSnapshot = await db.collection('exams').doc(currentExamId)
       .collection('questions')
-      .where('assignedTo', '==', null)
       .get();
 
     const questionsContainer = document.getElementById('questions-container');
