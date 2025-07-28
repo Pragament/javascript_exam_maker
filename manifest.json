@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "Exam Screen Recorder",
+  "version": "2.5",
+  "description": "Automatically records the screen with timelapse and subtitles during an exam, and handles callbacks.",
+  "permissions": [
+    "downloads",
+    "scripting",
+    "activeTab",
+    "tabs",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Screen Recorder"
+  },
+  "options_page": "settings.html",
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "injector.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "icons": {
+    "128": "download.png"
+  }
+}

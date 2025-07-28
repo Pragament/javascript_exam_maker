@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Settings</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      width: 300px;
+    }
+    label, select, button {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    select, button {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h2>Admin Settings</h2>
+
+  <label for="fps">Default Frame Rate (FPS):</label>
+  <select id="fps">
+    <option value="5">5 FPS (Timelapse)</option>
+    <option value="10">10 FPS</option>
+    <option value="15">15 FPS</option>
+    <option value="30">30 FPS (Normal)</option>
+  </select>
+
+  <button id="save">Save Settings</button>
+
+  <script src="settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Recording...</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; text-align: center;}
+    button { width: 100%; padding: 10px; margin-top: 15px; border-radius: 5px; border: 1px solid #ccc; cursor: pointer; background-color: #f44336; color: white; border: none;}
+    button:disabled { background-color: #ccc; cursor: not-allowed; }
+    #status { font-size: 16px; color: #333; min-height: 24px;}
+  </style>
+</head>
+<body>
+  <h2>Screen Recorder</h2>
+  <p id="status">Waiting to start...</p>
+  <button id="stop" disabled>Stop Recording</button>
+  <script src="window.js"></script>
+</body>
+</html>
