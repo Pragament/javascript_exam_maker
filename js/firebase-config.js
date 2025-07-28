@@ -1,13 +1,11 @@
 // Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyAyNi0puCHYP-u5NPT2GhcWHzDz612KiE4",
-  authDomain: "exammakerproject.firebaseapp.com",
-  projectId: "exammakerproject",
-  storageBucket: "exammakerproject.firebasestorage.app",
-  messagingSenderId: "943974219624",
-  appId: "1:943974219624:web:573f8d8b93adee8dd2a0dd",
-  measurementId: "G-QM2C7JHGST"
+  apiKey: "AIzaSyCB9FQSWrdNXStLCqQIux0MoakBFqHo__s",
+  authDomain: "javascript-exam-maker.firebaseapp.com",
+  projectId: "javascript-exam-maker",
+  storageBucket: "javascript-exam-maker.firebasestorage.app",
+  messagingSenderId: "970468520665",
+  appId: "1:970468520665:web:258c91953d76f2a53104c8"
 };
 
 // Initialize Firebase
