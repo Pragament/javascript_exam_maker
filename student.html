@@ -32,5 +32,39 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="js/firebase-config.js"></script>
   <script src="js/student-view.js"></script>
+  <script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const observer = new MutationObserver(() => {
+      document.querySelectorAll('button').forEach((btn) => {
+        if (btn.textContent.trim() === 'Select This Question' && !btn.dataset.bound) {
+          btn.dataset.bound = "true";
+          btn.addEventListener('click', () => {
+            window.postMessage({ type: 'START_SCREEN_RECORDING' }, '*');
+          });
+        }
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  });
+
+  window.addEventListener("message", function(event) {
+    if (event.data.type === "RECORDING_STOPPED") {
+      alert("Recording saved. Please select the next question.");
+      const params = new URLSearchParams(window.location.search);
+      const examId = params.get("examId");
+      if (examId) {
+        window.location.href = `student.html?examId=${examId}&msg=recording_saved`;
+      } else {
+        window.location.href = "student.html?msg=recording_saved";
+      }
+    }
+  });
+</script>
+
+
 </body>
 </html>
