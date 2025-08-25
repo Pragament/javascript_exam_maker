@@ -38,7 +38,7 @@
         <textarea id="answer-text" rows="5" placeholder="Type your answer here..." style="width:100%;"></textarea>
         <div style="margin: 8px 0;">
           <label for="answer-file">Or upload CSV file:</label>
-          <input type="file" id="answer-file" accept=".csv">
+          <input type="file" id="answer-file" accept=".csv,.xlsx,.xls ">
         </div>
         <button class="btn-primary" onclick="submitAnswer()">Submit Answer</button>
         <div id="answer-submit-status"></div>
@@ -52,6 +52,7 @@
   <script src="js/firebase-config.js"></script>
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="js/student-view.js"></script>
   <script>
   window.addEventListener("DOMContentLoaded", () => {

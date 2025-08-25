@@ -325,7 +325,11 @@ window.downloadSubmittedCSV = async function(questionId) {
   }
 }
 
-// Submit answer for the current question
+// Add XLSX support for answer upload
+// Add this at the top if not already present
+// <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+// in your HTML before this script
+
 async function submitAnswer() {
   if (!currentQuestionId) {
     showError("No question selected.");
@@ -352,15 +356,42 @@ async function submitAnswer() {
 
     if (answerFileInput.files && answerFileInput.files.length > 0) {
       const file = answerFileInput.files[0];
-      // Read file as text (CSV)
-      const fileContent = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = e => resolve(e.target.result);
-        reader.onerror = reject;
-        reader.readAsText(file);
-      });
-      answerData.csv = fileContent;
-      answerData.csvFileName = file.name;
+      let fileContent = "";
+      let fileName = file.name;
+      let isExcel = /\.(xlsx|xls)$/i.test(fileName);
+
+      if (isExcel) {
+        // Read Excel file and convert to CSV using SheetJS
+        fileContent = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = e => {
+            try {
+              const data = new Uint8Array(e.target.result);
+              const workbook = XLSX.read(data, { type: 'array' });
+              const firstSheet = workbook.SheetNames[0];
+              const csv = XLSX.utils.sheet_to_csv(workbook.Sheets[firstSheet]);
+              resolve(csv);
+            } catch (err) {
+              reject(err);
+            }
+          };
+          reader.onerror = reject;
+          reader.readAsArrayBuffer(file);
+        });
+        // Store as CSV
+        answerData.csv = fileContent;
+        answerData.csvFileName = fileName.replace(/\.(xlsx|xls)$/i, ".csv");
+      } else {
+        // Read as CSV text
+        fileContent = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = e => resolve(e.target.result);
+          reader.onerror = reject;
+          reader.readAsText(file);
+        });
+        answerData.csv = fileContent;
+        answerData.csvFileName = fileName;
+      }
     }
 
     answerData.submittedAt = firebase.firestore.FieldValue.serverTimestamp();
