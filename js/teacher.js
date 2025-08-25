@@ -63,14 +63,22 @@ async function createNewExam() {
   const examCode = Math.floor(100000 + Math.random() * 900000).toString();
   
   try {
-    await db.collection('exams').add({
+    // Create exam and get reference
+    const examRef = await db.collection('exams').add({
       name: examName,
       class: examClass,
       code: examCode,
       teacherId: user.uid,
+      createdBy: user.email, // ensure createdBy is set for admin logic
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    
+
+    // Add creator as admin in teachers subcollection
+    await db.collection('exams').doc(examRef.id)
+      .collection('teachers')
+      .doc(user.email)
+      .set({ role: 'admin' }, { merge: true });
+
     // Clear form
     document.getElementById('exam-name').value = '';
     document.getElementById('exam-class').value = '';
