@@ -246,6 +246,9 @@ async function showQuestionDetails(questionId) {
         html += `<div id="csv-table-container" style="margin-top:10px;"></div>`;
       }
       html += `<div style="font-size:0.9em;color:#888;">Last updated: ${answerData.submittedAt && answerData.submittedAt.toDate ? answerData.submittedAt.toDate().toLocaleString() : ''}</div>`;
+      if (typeof answerData.marks !== "undefined") {
+        html += `<div style="margin-top:8px;"><strong>Marks Awarded:</strong> <span style="color:#2d7a2d;">${answerData.marks}</span></div>`;
+      }
       html += `<div style="color:#2d7a2d;">You can update your answer below.</div>`;
       html += `</div>`;
       statusDiv.innerHTML = html;
