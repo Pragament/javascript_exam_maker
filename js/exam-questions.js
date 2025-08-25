@@ -80,7 +80,11 @@ async function loadExamQuestions() {
                 ${q.assignedTo ? `Assigned to: ${q.assignedTo}` : 'Available'}
               </span>
               <button class="btn-small" onclick="editQuestion('${q.id}')">Edit</button>
-              <button class="btn-small" onclick="unpublishQuestion('${q.id}')">Unpublish</button>
+              ${
+                q.published === false
+                  ? `<button class="btn-small" onclick="publishQuestion('${q.id}')">Publish</button>`
+                  : `<button class="btn-small" onclick="unpublishQuestion('${q.id}')">Unpublish</button>`
+              }
               <button class="btn-small" onclick="deleteQuestion('${q.id}')">Delete</button>
               ${q.assignedTo ? `<button class="btn-small" onclick="unassignQuestion('${q.id}')">Unassign</button>` : ''}
             </div>
@@ -235,6 +239,19 @@ async function unpublishQuestion(questionId) {
   }
 }
 
+// Add this function to handle publishing a question
+async function publishQuestion(questionId) {
+  try {
+    await db.collection('exams').doc(currentExamId).collection('questions').doc(questionId).update({
+      published: true
+    });
+    showSuccess('Question published.');
+    loadExamQuestions();
+  } catch (e) {
+    showError('Failed to publish question.');
+  }
+}
+
 function editQuestion(questionId) {
   db.collection('exams').doc(currentExamId).collection('questions').doc(questionId).get()
     .then(doc => {
@@ -350,7 +367,11 @@ function renderQuestionsTable() {
       <td>${q.assignedTo || 'Unassigned'}</td>
       <td>
         <button class="btn-small" onclick="editQuestion('${q.id}')">Edit</button>
-        <button class="btn-small" onclick="unpublishQuestion('${q.id}')">Unpublish</button>
+        ${
+          q.published === false
+            ? `<button class="btn-small" onclick="publishQuestion('${q.id}')">Publish</button>`
+            : `<button class="btn-small" onclick="unpublishQuestion('${q.id}')">Unpublish</button>`
+        }
         <button class="btn-small" onclick="deleteQuestion('${q.id}')">Delete</button>
         ${q.assignedTo ? `<button class="btn-small" onclick="unassignQuestion('${q.id}')">Unassign</button>` : ''}
       </td>
