@@ -329,13 +329,26 @@ async function saveEditedQuestion() {
   }
 }
 
-// Toggle to card view
+// Show Card View
 function showCardView() {
   document.getElementById('questions-by-student-container').style.display = '';
   document.getElementById('questions-table-container').style.display = 'none';
   document.getElementById('card-view-btn').disabled = true;
   document.getElementById('table-view-btn').disabled = false;
 }
+
+// Show Table View
+function showTableView() {
+  document.getElementById('questions-by-student-container').style.display = 'none';
+  document.getElementById('questions-table-container').style.display = '';
+  document.getElementById('card-view-btn').disabled = false;
+  document.getElementById('table-view-btn').disabled = true;
+  renderQuestionsTable();
+}
+
+// Expose to global scope for HTML onclick
+window.showTableView = showTableView;
+window.showCardView = showCardView;
 
 // Toggle to table view
 function sortQuestions(questions, field, dir) {
@@ -871,13 +884,26 @@ async function saveEditedQuestion() {
   }
 }
 
-// Toggle to card view
+// Show Card View
 function showCardView() {
   document.getElementById('questions-by-student-container').style.display = '';
   document.getElementById('questions-table-container').style.display = 'none';
   document.getElementById('card-view-btn').disabled = true;
   document.getElementById('table-view-btn').disabled = false;
 }
+
+// Show Table View
+function showTableView() {
+  document.getElementById('questions-by-student-container').style.display = 'none';
+  document.getElementById('questions-table-container').style.display = '';
+  document.getElementById('card-view-btn').disabled = false;
+  document.getElementById('table-view-btn').disabled = true;
+  renderQuestionsTable();
+}
+
+// Expose to global scope for HTML onclick
+window.showTableView = showTableView;
+window.showCardView = showCardView;
 
 // Toggle to table view
 function sortQuestions(questions, field, dir) {
