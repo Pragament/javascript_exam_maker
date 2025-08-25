@@ -31,6 +31,7 @@ async function showAvailableQuestions() {
       .collection("exams")
       .doc(currentExamId)
       .collection("questions")
+      .where('assignedTo', '==', null)
       .get();
 
     const questionsContainer = document.getElementById("questions-container");
@@ -58,6 +59,11 @@ async function showAvailableQuestions() {
       `;
       questionsContainer.appendChild(questionElement);
     });
+    // Show status message if redirected here after unassign
+    if (window.sessionStorage.getItem('unassignedStatus')) {
+      showSuccess('You have been unassigned from your previous question.');
+      window.sessionStorage.removeItem('unassignedStatus');
+    }
   } catch (error) {
     console.error("Error loading questions:", error);
     showError("Failed to load questions. Please try again.");
@@ -185,6 +191,28 @@ function showError(message) {
   errorDiv.textContent = message;
   document.querySelector("main").prepend(errorDiv);
   setTimeout(() => errorDiv.remove(), 5000);
+}
+
+// Optionally, if you want to allow students to unassign themselves, you could add a function like this:
+// (Not required unless you want students to unassign themselves.)
+// async function unassignSelf() {
+//   try {
+//     await db.collection("exams").doc(currentExamId).collection("questions").doc(currentQuestionId).update({
+//       assignedTo: null
+//     });
+//     window.sessionStorage.setItem('unassignedStatus', '1');
+//     window.location.href = window.location.pathname + '?examId=' + encodeURIComponent(currentExamId);
+//   } catch (error) {
+//     showError("Failed to unassign yourself. Please try again.");
+//   }
+// }
+
+function showSuccess(message) {
+  const successDiv = document.createElement("div");
+  successDiv.className = "alert success";
+  successDiv.textContent = message;
+  document.querySelector("main").prepend(successDiv);
+  setTimeout(() => successDiv.remove(), 5000);
 }
 
 // Load view when page loads

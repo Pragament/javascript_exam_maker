@@ -1,0 +1,61 @@
+Title,Description,Topics,Subtopics,Plan
+My First Web Page,Create a simple web page with a title and paragraph,Basic HTML,"<html>, <head>, <title>, <body>, <p>","1. Open text editor
+2. Write HTML skeleton
+3. Add title and one paragraph
+4. Save as .html and open in browser"
+Favorite Animal Page,Create a page describing your favorite animal with an image,"HTML basics, Images","<img>, <h1>, <p>","1. Write heading
+2. Add paragraph
+3. Insert image using <img>"
+Colorful Text,Create a page with different colored and styled text,Inline CSS,style attribute,"1. Add paragraph
+2. Apply inline styles for color, font size"
+Simple List Page,Create a web page with ordered and unordered lists,HTML Lists,"<ol>, <ul>, <li>","1. Add a heading
+2. Create both types of lists"
+Profile Page,Make a personal profile with text formatting and a photo,HTML Formatting,"<b>, <i>, <u>, <img>","1. Add name with <b>
+2. Italicize hobby
+3. Add a photo"
+Table of Subjects,Create a table showing subjects and marks,HTML Tables,"<table>, <tr>, <td>, <th>","1. Create table
+2. Add header row
+3. Add at least 3 rows of data"
+Link to Learn,Create a page with clickable links to educational websites,HTML Links,<a>,1. Add 3 hyperlinks using <a href>
+School Web Banner,Design a banner for your school using headings and background color,CSS,"background-color, text-align","1. Use <div> or <h1>
+2. Apply background and text color"
+My Timetable,Design a weekly school timetable using a table,"Tables, CSS","border, colspan, rowspan","1. Create table structure
+2. Add subject periods
+3. Apply borders"
+Fruit Gallery,Create a 2x2 image grid of fruits,"HTML, Inline CSS","<img>, width/height styles","1. Add images
+2. Use inline style to control size"
+Recipe Web Page,"Create a cooking recipe page with steps, image, and ingredients",HTML Structuring,"<h2>, <ul>, <ol>, <img>","1. Add ingredients in list
+2. Add image
+3. Add steps in ordered list"
+CSS Typography,Create a page showing different fonts and sizes,CSS,"font-family, font-size","1. Add multiple paragraphs
+2. Apply different fonts"
+Two-Column Layout,Use <div> to create a two-column layout for a blog,HTML & CSS Layout,"<div>, float, width","1. Create two divs
+2. Style with float and width"
+Feedback Form,Create a basic HTML form for feedback,HTML Forms,"<form>, <input>, <textarea>, <button>","1. Add input for name
+2. Add textarea for message
+3. Add submit button"
+CSS Box Model,"Create a styled box with padding, border, and margin",CSS Box Model,"padding, margin, border","1. Create div
+2. Style it with box model properties"
+Web Page with Internal CSS,Create a simple website with internal CSS for color and text style,CSS,<style> tag,"1. Add <style> block in <head>
+2. Style body and text"
+Biography Page,"Make a page for a famous personality with image, info, and quote",HTML,"<img>, <blockquote>","1. Add bio info
+2. Include quote using <blockquote>"
+Travel Blog,"Design a travel blog page with headings, images, and links",HTML Page,"<h1>, <img>, <a>","1. Add blog title
+2. Add photo
+3. Link to travel info"
+CSS External Stylesheet,Link an external CSS file to a web page,CSS Linking,"<link> tag, .css file","1. Create style.css
+2. Add styles
+3. Link using <link>"
+Navigation Bar,Create a top nav bar with horizontal links,CSS Styling,"display: inline, background-color","1. Use <nav> or <div>
+2. Add <a> links
+3. Style with CSS"
+Responsive Image Page,Create a web page with responsive images,CSS,"width: 100%, max-width","1. Add images
+2. Style with responsive width"
+Styled Registration Form,Design a registration form with styled input fields,Forms + CSS,"input, label, padding, border-radius","1. Create form
+2. Style each input field"
+Portfolio Web Page,Create a personal portfolio with sections and internal links,HTML Structure,"<section>, <a href=""#id"">, <id>","1. Add 3 sections
+2. Add links to scroll to sections"
+Product Showcase Page,"Create a page showing 3 products with image, name, price, and Buy button",HTML & CSS,"<div>, button, image styles","1. Add product sections
+2. Use CSS to style layout"
+CSS Animation Intro,Animate a button hover effect using CSS,CSS Transitions,":hover, transition","1. Create a button
+2. Add hover effect using CSS"

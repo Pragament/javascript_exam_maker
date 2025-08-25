@@ -57,8 +57,16 @@
 
     <section class="questions-list">
       <h2>Exam Questions</h2>
-      <div id="questions-container" class="cards-container">
-        <!-- Questions will be loaded here -->
+      <div class="view-toggle">
+        <button id="card-view-btn" class="btn-secondary" onclick="showCardView()">Card View</button>
+        <button id="table-view-btn" class="btn-secondary" onclick="showTableView()">Table View</button>
+      </div>
+      <div id="questions-by-student-container">
+        <!-- Grouped questions by student will be rendered here by JS -->
+      </div>
+      <div id="questions-table-container" style="display:none;">
+        <!-- Table view will be rendered here by JS -->
+        <!-- Sorting handled by JS, headers will have clickable sort icons/buttons -->
       </div>
     </section>
   </main>
