@@ -4,12 +4,34 @@ let tableSort = { field: 'title', dir: 'asc' }; // Default sort
 let selectedQuestions = new Set();
 let editingQuestionId = null;
 
+// Helper to get current teacher's role for this exam
+function getCurrentTeacherRole() {
+  return sessionStorage.getItem('currentExamRole') || 'viewer';
+}
+
 // Load exam details and questions
 async function loadExamQuestions() {
   currentExamId = new URLSearchParams(window.location.search).get('examId');
   if (!currentExamId) {
     window.location.href = 'teacher.html';
     return;
+  }
+
+  // Get role from sessionStorage or fetch if missing
+  let currentRole = getCurrentTeacherRole();
+  if (!currentRole) {
+    // Fallback: fetch from Firestore if not set
+    const user = firebase.auth().currentUser;
+    if (user) {
+      const examDoc = await db.collection('exams').doc(currentExamId).get();
+      if (examDoc.exists && examDoc.data().createdBy === user.email) {
+        currentRole = 'admin';
+      } else {
+        const teacherDoc = await db.collection('exams').doc(currentExamId).collection('teachers').doc(user.email).get();
+        currentRole = teacherDoc.exists ? (teacherDoc.data().role || 'viewer') : 'viewer';
+      }
+      sessionStorage.setItem('currentExamRole', currentRole);
+    }
   }
 
   try {
@@ -72,21 +94,21 @@ async function loadExamQuestions() {
           const questionElement = document.createElement('div');
           questionElement.className = 'card question-card';
           questionElement.innerHTML = `
-            <input type="checkbox" onchange="toggleSelectQuestion('${q.id}', this.checked)" ${selectedQuestions.has(q.id) ? 'checked' : ''} style="margin-right:8px;">
+            <input type="checkbox" onchange="toggleSelectQuestion('${q.id}', this.checked)" ${selectedQuestions.has(q.id) ? 'checked' : ''} style="margin-right:8px;" ${currentRole === 'viewer' ? 'disabled' : ''}>
             <h4>${q.title}</h4>
             <p class="description">${q.description.substring(0, 100)}${q.description.length > 100 ? '...' : ''}</p>
             <div class="question-meta">
               <span class="status ${q.assignedTo ? 'assigned' : 'available'}">
                 ${q.assignedTo ? `Assigned to: ${q.assignedTo}` : 'Available'}
               </span>
-              <button class="btn-small" onclick="editQuestion('${q.id}')">Edit</button>
+              <button class="btn-small" onclick="editQuestion('${q.id}')" ${currentRole === 'viewer' ? 'disabled' : ''}>Edit</button>
               ${
                 q.published === false
-                  ? `<button class="btn-small" onclick="publishQuestion('${q.id}')">Publish</button>`
-                  : `<button class="btn-small" onclick="unpublishQuestion('${q.id}')">Unpublish</button>`
+                  ? `<button class="btn-small" onclick="publishQuestion('${q.id}')" ${currentRole === 'viewer' ? 'disabled' : ''}>Publish</button>`
+                  : `<button class="btn-small" onclick="unpublishQuestion('${q.id}')" ${currentRole === 'viewer' ? 'disabled' : ''}>Unpublish</button>`
               }
-              <button class="btn-small" onclick="deleteQuestion('${q.id}')">Delete</button>
-              ${q.assignedTo ? `<button class="btn-small" onclick="unassignQuestion('${q.id}')">Unassign</button>` : ''}
+              <button class="btn-small" onclick="deleteQuestion('${q.id}')" ${currentRole === 'viewer' ? 'disabled' : ''}>Delete</button>
+              ${q.assignedTo ? `<button class="btn-small" onclick="unassignQuestion('${q.id}')" ${currentRole === 'viewer' ? 'disabled' : ''}>Unassign</button>` : ''}
             </div>
           `;
           listDiv.appendChild(questionElement);
@@ -335,6 +357,7 @@ function renderQuestionsTable() {
   }
   const { field, dir } = tableSort;
   const sorted = sortQuestions(cachedQuestions, field, dir);
+  const currentRole = getCurrentTeacherRole();
 
   // Sort icons
   const up = '&uarr;';
@@ -345,7 +368,7 @@ function renderQuestionsTable() {
   let html = `<table class="questions-table">
     <thead>
       <tr>
-        <th><input type="checkbox" onclick="toggleSelectAllTable(this)"></th>
+        <th><input type="checkbox" onclick="toggleSelectAllTable(this)" ${currentRole === 'viewer' ? 'disabled' : ''}></th>
         <th><button class="sort-btn" onclick="sortTableBy('title')">Title ${titleSortIcon}</button></th>
         <th>Description</th>
         <th>Topics</th>
@@ -358,7 +381,7 @@ function renderQuestionsTable() {
     <tbody>`;
   sorted.forEach(q => {
     html += `<tr>
-      <td><input type="checkbox" onchange="toggleSelectQuestion('${q.id}', this.checked)" ${selectedQuestions.has(q.id) ? 'checked' : ''}></td>
+      <td><input type="checkbox" onchange="toggleSelectQuestion('${q.id}', this.checked)" ${selectedQuestions.has(q.id) ? 'checked' : ''} ${currentRole === 'viewer' ? 'disabled' : ''}></td>
       <td>${q.title}</td>
       <td>${q.description.substring(0, 60)}${q.description.length > 60 ? '...' : ''}</td>
       <td>${Array.isArray(q.topics) ? q.topics.join(', ') : ''}</td>
@@ -366,14 +389,14 @@ function renderQuestionsTable() {
       <td>${q.plan ? q.plan.substring(0, 40) + (q.plan.length > 40 ? '...' : '') : ''}</td>
       <td>${q.assignedTo || 'Unassigned'}</td>
       <td>
-        <button class="btn-small" onclick="editQuestion('${q.id}')">Edit</button>
+        <button class="btn-small" onclick="editQuestion('${q.id}')" ${currentRole === 'viewer' ? 'disabled' : ''}>Edit</button>
         ${
           q.published === false
-            ? `<button class="btn-small" onclick="publishQuestion('${q.id}')">Publish</button>`
-            : `<button class="btn-small" onclick="unpublishQuestion('${q.id}')">Unpublish</button>`
+            ? `<button class="btn-small" onclick="publishQuestion('${q.id}')" ${currentRole === 'viewer' ? 'disabled' : ''}>Publish</button>`
+            : `<button class="btn-small" onclick="unpublishQuestion('${q.id}')" ${currentRole === 'viewer' ? 'disabled' : ''}>Unpublish</button>`
         }
-        <button class="btn-small" onclick="deleteQuestion('${q.id}')">Delete</button>
-        ${q.assignedTo ? `<button class="btn-small" onclick="unassignQuestion('${q.id}')">Unassign</button>` : ''}
+        <button class="btn-small" onclick="deleteQuestion('${q.id}')" ${currentRole === 'viewer' ? 'disabled' : ''}>Delete</button>
+        ${q.assignedTo ? `<button class="btn-small" onclick="unassignQuestion('${q.id}')" ${currentRole === 'viewer' ? 'disabled' : ''}>Unassign</button>` : ''}
       </td>
     </tr>`;
   });
@@ -455,6 +478,13 @@ function showSuccess(message) {
 
 // Invite another teacher to the exam with a role
 async function inviteTeacher() {
+  const currentRole = getCurrentTeacherRole();
+  if (currentRole !== 'admin') {
+    document.getElementById('invite-status').textContent = 'Only admin can invite teachers.';
+    document.getElementById('invite-status').className = 'alert error';
+    return;
+  }
+
   const email = document.getElementById('invite-email').value.trim();
   const role = document.getElementById('invite-role').value;
   const statusDiv = document.getElementById('invite-status');

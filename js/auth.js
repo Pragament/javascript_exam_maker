@@ -64,6 +64,17 @@ async function loadTeacherExams(userEmail) {
   return exams;
 }
 
+// Store teacher role for current exam in sessionStorage
+async function getCurrentExamRole(userEmail, examId) {
+  // Owner if createdBy
+  const examDoc = await db.collection('exams').doc(examId).get();
+  if (examDoc.exists && examDoc.data().createdBy === userEmail) return 'admin';
+  // Check teachers subcollection
+  const teacherDoc = await db.collection('exams').doc(examId).collection('teachers').doc(userEmail).get();
+  if (teacherDoc.exists) return teacherDoc.data().role || 'viewer';
+  return null;
+}
+
 // Example usage in your teacher dashboard page load logic:
 // (Replace your current exam loading logic with this)
 async function showTeacherDashboard() {
@@ -85,8 +96,14 @@ async function showTeacherDashboard() {
     div.innerHTML = `
       <h3>${exam.name}</h3>
       <p>Role: ${exam.role}</p>
-      <a href="exam-questions.html?examId=${exam.id}" class="btn-primary">Manage Questions</a>
+      <a href="exam-questions.html?examId=${exam.id}" class="btn-primary" onclick="setExamRole('${exam.id}', '${exam.role}')">Manage Questions</a>
     `;
     examsContainer.appendChild(div);
   });
+}
+
+// Save role in sessionStorage for the selected exam
+function setExamRole(examId, role) {
+  sessionStorage.setItem('currentExamRole', role);
+  sessionStorage.setItem('currentExamId', examId);
 }
