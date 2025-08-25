@@ -112,6 +112,24 @@
         <!-- Sorting handled by JS, headers will have clickable sort icons/buttons -->
       </div>
     </section>
+
+    <!-- Invite Teacher Section -->
+    <section class="invite-teacher card">
+      <h2>Invite Another Teacher</h2>
+      <div class="form-group">
+        <label for="invite-email">Teacher Email</label>
+        <input type="email" id="invite-email" placeholder="teacher@example.com">
+      </div>
+      <div class="form-group">
+        <label for="invite-role">Role</label>
+        <select id="invite-role">
+          <option value="viewer">Viewer</option>
+          <option value="editor">Editor</option>
+        </select>
+      </div>
+      <button class="btn-primary" onclick="inviteTeacher()">Invite Teacher</button>
+      <div id="invite-status"></div>
+    </section>
   </main>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>

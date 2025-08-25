@@ -453,6 +453,36 @@ function showSuccess(message) {
   setTimeout(() => successDiv.remove(), 5000);
 }
 
+// Invite another teacher to the exam with a role
+async function inviteTeacher() {
+  const email = document.getElementById('invite-email').value.trim();
+  const role = document.getElementById('invite-role').value;
+  const statusDiv = document.getElementById('invite-status');
+  statusDiv.textContent = '';
+
+  if (!email) {
+    statusDiv.textContent = 'Please enter a valid email.';
+    statusDiv.className = 'alert error';
+    return;
+  }
+
+  try {
+    // Add or update teacher in the exam's teachers subcollection
+    await db.collection('exams').doc(currentExamId)
+      .collection('teachers')
+      .doc(email)
+      .set({ role }, { merge: true });
+
+    statusDiv.textContent = `Invitation sent to ${email} as ${role}.`;
+    statusDiv.className = 'alert success';
+    document.getElementById('invite-email').value = '';
+    document.getElementById('invite-role').value = 'viewer';
+  } catch (error) {
+    statusDiv.textContent = 'Failed to invite teacher. Please try again.';
+    statusDiv.className = 'alert error';
+  }
+}
+
 // Load questions when page loads
 document.addEventListener('DOMContentLoaded', () => {
   loadExamQuestions();
