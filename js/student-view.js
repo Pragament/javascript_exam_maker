@@ -1,6 +1,7 @@
 let currentExamId = null;
 let rollNumber = null;
 let assignedQuestions = []; // Store assigned questions
+let currentQuestionId = null; // Track which question is being viewed for answer submission
 
 // Load student view
 async function loadStudentView() {
@@ -150,6 +151,7 @@ async function unassignSelf(questionId) {
 // Show details for a specific assigned question
 async function showQuestionDetails(questionId) {
   try {
+    currentQuestionId = questionId;
     const questionDoc = await db
       .collection("exams")
       .doc(currentExamId)
@@ -206,11 +208,180 @@ async function showQuestionDetails(questionId) {
       }
     `;
 
+    // Fetch submitted answer (if any)
+    let answerData = null;
+    try {
+      const answerDoc = await db.collection("exams")
+        .doc(currentExamId)
+        .collection("questions")
+        .doc(currentQuestionId)
+        .collection("answers")
+        .doc(rollNumber)
+        .get();
+      if (answerDoc.exists) {
+        answerData = answerDoc.data();
+      }
+    } catch (e) {
+      // ignore error, just don't show answer
+    }
+
     // Show question view, hide selection
     document.getElementById("question-selection").style.display = "none";
     document.getElementById("question-view").style.display = "block";
+
+    // Fill answer form with previous answer if exists
+    document.getElementById("answer-text").value = answerData && answerData.text ? answerData.text : "";
+    document.getElementById("answer-file").value = "";
+
+    // Show submitted answer (if any)
+    const statusDiv = document.getElementById("answer-submit-status");
+    if (answerData) {
+      let html = `<div class="submitted-answer" style="margin-top:10px;">
+        <strong>Your Submitted Answer:</strong><br>`;
+      if (answerData.text) {
+        html += `<div style="white-space:pre-wrap;border:1px solid #ccc;padding:8px;margin:4px 0;">${answerData.text}</div>`;
+      }
+      if (answerData.csvFileName) {
+        html += `<div>CSV File: <a href="#" onclick="downloadSubmittedCSV('${questionId}')">${answerData.csvFileName}</a></div>`;
+        html += `<div id="csv-table-container" style="margin-top:10px;"></div>`;
+      }
+      html += `<div style="font-size:0.9em;color:#888;">Last updated: ${answerData.submittedAt && answerData.submittedAt.toDate ? answerData.submittedAt.toDate().toLocaleString() : ''}</div>`;
+      html += `<div style="color:#2d7a2d;">You can update your answer below.</div>`;
+      html += `</div>`;
+      statusDiv.innerHTML = html;
+      statusDiv.className = "";
+
+      // Render CSV as table if present
+      if (answerData.csv) {
+        renderCSVTable(answerData.csv);
+      }
+    } else {
+      statusDiv.innerHTML = "";
+      statusDiv.className = "";
+    }
   } catch (error) {
     showError("Failed to load question. Please try again.");
+  }
+}
+
+// Render CSV string as DataTable
+function renderCSVTable(csvString) {
+  // Remove previous table if any
+  const container = document.getElementById("csv-table-container");
+  if (!container) return;
+  container.innerHTML = "";
+
+  // Parse CSV (simple split, assumes no quoted commas)
+  const rows = csvString.trim().split('\n').map(row => row.split(','));
+  if (rows.length === 0) return;
+
+  // Build HTML table
+  let tableHtml = `<table id="student-csv-table" class="display" style="width:100%"><thead><tr>`;
+  rows[0].forEach(cell => {
+    tableHtml += `<th>${cell.trim()}</th>`;
+  });
+  tableHtml += `</tr></thead><tbody>`;
+  for (let i = 1; i < rows.length; i++) {
+    tableHtml += `<tr>`;
+    rows[i].forEach(cell => {
+      tableHtml += `<td>${cell.trim()}</td>`;
+    });
+    tableHtml += `</tr>`;
+  }
+  tableHtml += `</tbody></table>`;
+  container.innerHTML = tableHtml;
+
+  // Initialize DataTable
+  if (window.jQuery && window.jQuery.fn && window.jQuery.fn.DataTable) {
+    $('#student-csv-table').DataTable();
+  }
+}
+
+// Download submitted CSV (if any)
+window.downloadSubmittedCSV = async function(questionId) {
+  try {
+    const answerDoc = await db.collection("exams")
+      .doc(currentExamId)
+      .collection("questions")
+      .doc(questionId)
+      .collection("answers")
+      .doc(rollNumber)
+      .get();
+    if (answerDoc.exists && answerDoc.data().csv && answerDoc.data().csvFileName) {
+      const blob = new Blob([answerDoc.data().csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = answerDoc.data().csvFileName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+    }
+  } catch (e) {
+    showError("Could not download CSV file.");
+  }
+}
+
+// Submit answer for the current question
+async function submitAnswer() {
+  if (!currentQuestionId) {
+    showError("No question selected.");
+    return;
+  }
+  const answerText = document.getElementById("answer-text").value.trim();
+  const answerFileInput = document.getElementById("answer-file");
+  const statusDiv = document.getElementById("answer-submit-status");
+
+  if (!answerText && (!answerFileInput.files || answerFileInput.files.length === 0)) {
+    statusDiv.textContent = "Please enter an answer or upload a file.";
+    statusDiv.className = "alert error";
+    return;
+  }
+
+  statusDiv.textContent = "";
+  statusDiv.className = "";
+
+  try {
+    let answerData = {};
+    if (answerText) {
+      answerData.text = answerText;
+    }
+
+    if (answerFileInput.files && answerFileInput.files.length > 0) {
+      const file = answerFileInput.files[0];
+      // Read file as text (CSV)
+      const fileContent = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsText(file);
+      });
+      answerData.csv = fileContent;
+      answerData.csvFileName = file.name;
+    }
+
+    answerData.submittedAt = firebase.firestore.FieldValue.serverTimestamp();
+    answerData.rollNumber = rollNumber;
+
+    // Save answer under the question's "answers" subcollection, doc id = rollNumber
+    await db.collection("exams")
+      .doc(currentExamId)
+      .collection("questions")
+      .doc(currentQuestionId)
+      .collection("answers")
+      .doc(rollNumber)
+      .set(answerData, { merge: true });
+
+    statusDiv.textContent = "Answer submitted successfully!";
+    statusDiv.className = "alert success";
+    document.getElementById("answer-text").value = "";
+    document.getElementById("answer-file").value = "";
+  } catch (error) {
+    statusDiv.textContent = "Failed to submit answer. Please try again.";
+    statusDiv.className = "alert error";
   }
 }
 

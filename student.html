@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Exam Question</title>
   <link rel="stylesheet" href="css/style.css">
+  <!-- Add DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 </head>
 <body>
   <header>
@@ -31,6 +33,16 @@
       <div id="question-details">
         <!-- Question details will be loaded here -->
       </div>
+      <div id="answer-submit-section" style="margin-top: 24px;">
+        <h3>Submit Your Answer</h3>
+        <textarea id="answer-text" rows="5" placeholder="Type your answer here..." style="width:100%;"></textarea>
+        <div style="margin: 8px 0;">
+          <label for="answer-file">Or upload CSV file:</label>
+          <input type="file" id="answer-file" accept=".csv">
+        </div>
+        <button class="btn-primary" onclick="submitAnswer()">Submit Answer</button>
+        <div id="answer-submit-status"></div>
+      </div>
     </div>
   </main>
 
@@ -38,6 +50,8 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="js/firebase-config.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="js/student-view.js"></script>
   <script>
   window.addEventListener("DOMContentLoaded", () => {
