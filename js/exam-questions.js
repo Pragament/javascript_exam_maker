@@ -1,6 +1,8 @@
 let currentExamId = null;
 let cachedQuestions = []; // Store questions for table view
 let tableSort = { field: 'title', dir: 'asc' }; // Default sort
+let selectedQuestions = new Set();
+let editingQuestionId = null;
 
 // Load exam details and questions
 async function loadExamQuestions() {
@@ -42,9 +44,10 @@ async function loadExamQuestions() {
 
     // Group questions by assignedTo
     const grouped = {};
-    cachedQuestions = []; // Reset cache
+    cachedQuestions = [];
     questionsSnapshot.forEach(doc => {
       const question = doc.data();
+      // Only include published questions for students, but show all for teacher
       const assigned = question.assignedTo || 'Unassigned';
       if (!grouped[assigned]) grouped[assigned] = [];
       grouped[assigned].push({ id: doc.id, ...question });
@@ -69,12 +72,15 @@ async function loadExamQuestions() {
           const questionElement = document.createElement('div');
           questionElement.className = 'card question-card';
           questionElement.innerHTML = `
+            <input type="checkbox" onchange="toggleSelectQuestion('${q.id}', this.checked)" ${selectedQuestions.has(q.id) ? 'checked' : ''} style="margin-right:8px;">
             <h4>${q.title}</h4>
             <p class="description">${q.description.substring(0, 100)}${q.description.length > 100 ? '...' : ''}</p>
             <div class="question-meta">
               <span class="status ${q.assignedTo ? 'assigned' : 'available'}">
                 ${q.assignedTo ? `Assigned to: ${q.assignedTo}` : 'Available'}
               </span>
+              <button class="btn-small" onclick="editQuestion('${q.id}')">Edit</button>
+              <button class="btn-small" onclick="unpublishQuestion('${q.id}')">Unpublish</button>
               <button class="btn-small" onclick="deleteQuestion('${q.id}')">Delete</button>
               ${q.assignedTo ? `<button class="btn-small" onclick="unassignQuestion('${q.id}')">Unassign</button>` : ''}
             </div>
@@ -105,6 +111,7 @@ async function addQuestion() {
   const topics = document.getElementById('question-topics').value.trim().split(',').map(t => t.trim());
   const subtopics = document.getElementById('question-subtopics').value.trim().split(',').map(t => t.trim());
   const plan = document.getElementById('question-plan').value.trim();
+  const published = document.getElementById('question-published').checked;
 
   if (!title || !description) {
     showError('Title and Description are required');
@@ -119,6 +126,7 @@ async function addQuestion() {
       subtopics,
       plan,
       assignedTo: null,
+      published,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
@@ -128,6 +136,7 @@ async function addQuestion() {
     document.getElementById('question-topics').value = '';
     document.getElementById('question-subtopics').value = '';
     document.getElementById('question-plan').value = '';
+    document.getElementById('question-published').checked = true;
 
     showSuccess('Question added successfully!');
     loadExamQuestions();
@@ -213,6 +222,70 @@ async function unassignQuestion(questionId) {
   }
 }
 
+// Unpublish question
+async function unpublishQuestion(questionId) {
+  try {
+    await db.collection('exams').doc(currentExamId).collection('questions').doc(questionId).update({
+      published: false
+    });
+    showSuccess('Question unpublished.');
+    loadExamQuestions();
+  } catch (e) {
+    showError('Failed to unpublish question.');
+  }
+}
+
+function editQuestion(questionId) {
+  db.collection('exams').doc(currentExamId).collection('questions').doc(questionId).get()
+    .then(doc => {
+      if (!doc.exists) {
+        showError('Question not found.');
+        return;
+      }
+      const q = doc.data();
+      editingQuestionId = questionId;
+      document.getElementById('edit-question-title').value = q.title || '';
+      document.getElementById('edit-question-description').value = q.description || '';
+      document.getElementById('edit-question-topics').value = (q.topics || []).join(', ');
+      document.getElementById('edit-question-subtopics').value = (q.subtopics || []).join(', ');
+      document.getElementById('edit-question-plan').value = q.plan || '';
+      document.getElementById('edit-question-published').checked = q.published !== false;
+      document.getElementById('edit-question-modal').style.display = 'block';
+    })
+    .catch(() => showError('Failed to load question for editing.'));
+}
+
+function closeEditModal() {
+  document.getElementById('edit-question-modal').style.display = 'none';
+  editingQuestionId = null;
+}
+
+async function saveEditedQuestion() {
+  if (!editingQuestionId) return;
+  const title = document.getElementById('edit-question-title').value.trim();
+  const description = document.getElementById('edit-question-description').value.trim();
+  const topics = document.getElementById('edit-question-topics').value.trim().split(',').map(t => t.trim()).filter(Boolean);
+  const subtopics = document.getElementById('edit-question-subtopics').value.trim().split(',').map(t => t.trim()).filter(Boolean);
+  const plan = document.getElementById('edit-question-plan').value.trim();
+  const published = document.getElementById('edit-question-published').checked;
+
+  if (!title || !description) {
+    showError('Title and Description are required');
+    return;
+  }
+
+  try {
+    await db.collection('exams').doc(currentExamId).collection('questions').doc(editingQuestionId).update({
+      title, description, topics, subtopics, plan, published
+    });
+    showSuccess('Question updated successfully!');
+    closeEditModal();
+    loadExamQuestions();
+  } catch (e) {
+    showError('Failed to update question.');
+  }
+}
+
 // Toggle to card view
 function showCardView() {
   document.getElementById('questions-by-student-container').style.display = '';
@@ -255,6 +328,7 @@ function renderQuestionsTable() {
   let html = `<table class="questions-table">
     <thead>
       <tr>
+        <th><input type="checkbox" onclick="toggleSelectAllTable(this)"></th>
         <th><button class="sort-btn" onclick="sortTableBy('title')">Title ${titleSortIcon}</button></th>
         <th>Description</th>
         <th>Topics</th>
@@ -267,6 +341,7 @@ function renderQuestionsTable() {
     <tbody>`;
   sorted.forEach(q => {
     html += `<tr>
+      <td><input type="checkbox" onchange="toggleSelectQuestion('${q.id}', this.checked)" ${selectedQuestions.has(q.id) ? 'checked' : ''}></td>
       <td>${q.title}</td>
       <td>${q.description.substring(0, 60)}${q.description.length > 60 ? '...' : ''}</td>
       <td>${Array.isArray(q.topics) ? q.topics.join(', ') : ''}</td>
@@ -274,6 +349,8 @@ function renderQuestionsTable() {
       <td>${q.plan ? q.plan.substring(0, 40) + (q.plan.length > 40 ? '...' : '') : ''}</td>
       <td>${q.assignedTo || 'Unassigned'}</td>
       <td>
+        <button class="btn-small" onclick="editQuestion('${q.id}')">Edit</button>
+        <button class="btn-small" onclick="unpublishQuestion('${q.id}')">Unpublish</button>
         <button class="btn-small" onclick="deleteQuestion('${q.id}')">Delete</button>
         ${q.assignedTo ? `<button class="btn-small" onclick="unassignQuestion('${q.id}')">Unassign</button>` : ''}
       </td>
@@ -283,16 +360,51 @@ function renderQuestionsTable() {
   tableContainer.innerHTML = html;
 }
 
-function sortTableBy(field) {
-  if (tableSort.field === field) {
-    tableSort.dir = tableSort.dir === 'asc' ? 'desc' : 'asc';
-  } else {
-    tableSort.field = field;
-    tableSort.dir = 'asc';
-  }
+// Select/deselect all in table
+function toggleSelectAllTable(master) {
+  const checkboxes = document.querySelectorAll('#questions-table-container tbody input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    cb.checked = master.checked;
+    const qid = cb.closest('tr').querySelector('input[type="checkbox"]').value || cb.closest('tr').querySelector('input[type="checkbox"]').getAttribute('data-qid') || cb.closest('tr').querySelector('input[type="checkbox"]').getAttribute('id');
+    toggleSelectQuestion(cb.closest('tr').children[1].textContent, master.checked);
+  });
+  // Actually, better to use the id from the input value:
+  sorted.forEach(q => {
+    if (master.checked) selectedQuestions.add(q.id);
+    else selectedQuestions.delete(q.id);
+  });
   renderQuestionsTable();
 }
 
+// Bulk unpublish selected questions
+async function unpublishSelectedQuestions() {
+  if (selectedQuestions.size === 0) {
+    showError('No questions selected.');
+    return;
+  }
+  if (!confirm('Unpublish selected questions? They will be hidden from students.')) return;
+  try {
+    const batch = db.batch();
+    selectedQuestions.forEach(qid => {
+      const ref = db.collection('exams').doc(currentExamId).collection('questions').doc(qid);
+      batch.update(ref, { published: false });
+    });
+    await batch.commit();
+    showSuccess('Selected questions unpublished.');
+    selectedQuestions.clear();
+    loadExamQuestions();
+  } catch (e) {
+    showError('Failed to unpublish selected questions.');
+  }
+}
+
+// Handle select/deselect
+function toggleSelectQuestion(qid, checked) {
+  if (checked) selectedQuestions.add(qid);
+  else selectedQuestions.delete(qid);
+}
+
+// Toggle to table view
 function showTableView() {
   const tableContainer = document.getElementById('questions-table-container');
   const cardContainer = document.getElementById('questions-by-student-container');

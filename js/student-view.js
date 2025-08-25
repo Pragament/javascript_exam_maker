@@ -32,6 +32,7 @@ async function showAvailableQuestions() {
       .doc(currentExamId)
       .collection("questions")
       .where('assignedTo', '==', null)
+      .where('published', '==', true)
       .get();
 
     const questionsContainer = document.getElementById("questions-container");

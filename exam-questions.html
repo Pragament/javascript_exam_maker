@@ -20,7 +20,7 @@
       <a href="teacher.html">&larr; Back to Dashboard</a>
     </div>
 
-    <section class="add-question card">
+    <section class="add-question card" id="add-question-section">
       <h2>Add New Question</h2>
       <div class="form-group">
         <label for="question-title">Title</label>
@@ -42,8 +42,50 @@
         <label for="question-plan">Plan/Guidelines</label>
         <textarea id="question-plan" rows="3" placeholder="Solution plan or guidelines"></textarea>
       </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="question-published" checked>
+          Published (visible to students)
+        </label>
+      </div>
       <button class="btn-primary" onclick="addQuestion()">Add Question</button>
     </section>
+
+    <!-- Edit Question Modal -->
+    <div id="edit-question-modal" class="modal" style="display:none;">
+      <div class="modal-content card">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <h2>Edit Question</h2>
+        <div class="form-group">
+          <label for="edit-question-title">Title</label>
+          <input type="text" id="edit-question-title" placeholder="Question title">
+        </div>
+        <div class="form-group">
+          <label for="edit-question-description">Description</label>
+          <textarea id="edit-question-description" rows="4" placeholder="Detailed question description"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="edit-question-topics">Topics (comma separated)</label>
+          <input type="text" id="edit-question-topics" placeholder="Topic1, Topic2, Topic3">
+        </div>
+        <div class="form-group">
+          <label for="edit-question-subtopics">Subtopics (comma separated)</label>
+          <input type="text" id="edit-question-subtopics" placeholder="Subtopic1, Subtopic2">
+        </div>
+        <div class="form-group">
+          <label for="edit-question-plan">Plan/Guidelines</label>
+          <textarea id="edit-question-plan" rows="3" placeholder="Solution plan or guidelines"></textarea>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="edit-question-published">
+            Published (visible to students)
+          </label>
+        </div>
+        <button class="btn-primary" onclick="saveEditedQuestion()">Save Changes</button>
+        <button class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+      </div>
+    </div>
 
     <section class="import-questions card">
       <h2>Import Questions from CSV</h2>
@@ -60,6 +102,7 @@
       <div class="view-toggle">
         <button id="card-view-btn" class="btn-secondary" onclick="showCardView()">Card View</button>
         <button id="table-view-btn" class="btn-secondary" onclick="showTableView()">Table View</button>
+        <button id="unpublish-selected-btn" class="btn-danger" onclick="unpublishSelectedQuestions()" style="margin-left:16px;">Unpublish Selected</button>
       </div>
       <div id="questions-by-student-container">
         <!-- Grouped questions by student will be rendered here by JS -->
