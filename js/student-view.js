@@ -1,12 +1,11 @@
 let currentExamId = null;
-let currentQuestionId = null;
 let rollNumber = null;
+let assignedQuestions = []; // Store assigned questions
 
 // Load student view
 async function loadStudentView() {
   const urlParams = new URLSearchParams(window.location.search);
   currentExamId = urlParams.get("examId");
-  currentQuestionId = urlParams.get("questionId");
   rollNumber = localStorage.getItem("rollNumber");
 
   if (!currentExamId) {
@@ -14,17 +13,53 @@ async function loadStudentView() {
     return;
   }
 
-  if (currentQuestionId) {
-    // Show assigned question
-    await showQuestion();
-    return;
-  }
-
-  // Show available questions
+  await showAssignedQuestions();
   await showAvailableQuestions();
 }
 
-// Show available questions
+// Show assigned questions (multiple)
+async function showAssignedQuestions() {
+  try {
+    const assignedSnapshot = await db
+      .collection("exams")
+      .doc(currentExamId)
+      .collection("questions")
+      .where('assignedTo', '==', rollNumber)
+      .get();
+
+    assignedQuestions = [];
+    const assignedContainer = document.getElementById("assigned-questions-container");
+    if (assignedContainer) assignedContainer.innerHTML = "";
+
+    if (assignedSnapshot.empty) {
+      if (assignedContainer) {
+        assignedContainer.innerHTML = '<p class="no-questions">No questions assigned to you yet.</p>';
+      }
+      return;
+    }
+
+    assignedSnapshot.forEach((doc) => {
+      const question = doc.data();
+      assignedQuestions.push({ id: doc.id, ...question });
+      if (assignedContainer) {
+        const questionElement = document.createElement("div");
+        questionElement.className = "card question-card";
+        questionElement.innerHTML = `
+          <h3>${question.title}</h3>
+          <p class="description">${question.description.substring(0, 100)}${question.description.length > 100 ? "..." : ""}</p>
+          <button class="btn-secondary" onclick="showQuestionDetails('${doc.id}')">View Details</button>
+          <button class="btn-danger" onclick="unassignSelf('${doc.id}')">Unassign</button>
+        `;
+        assignedContainer.appendChild(questionElement);
+      }
+    });
+  } catch (error) {
+    console.error("Error loading assigned questions:", error);
+    showError("Failed to load assigned questions. Please try again.");
+  }
+}
+
+// Show available questions (allow multi-select)
 async function showAvailableQuestions() {
   try {
     const questionsSnapshot = await db
@@ -44,22 +79,26 @@ async function showAvailableQuestions() {
       return;
     }
 
+    // Multi-select checkboxes
     questionsSnapshot.forEach((doc) => {
       const question = doc.data();
       const questionElement = document.createElement("div");
       questionElement.className = "card question-card";
       questionElement.innerHTML = `
+        <input type="checkbox" class="assign-checkbox" value="${doc.id}" style="margin-right:8px;">
         <h3>${question.title}</h3>
-        <p class="description">${question.description.substring(
-          0,
-          100
-        )}${question.description.length > 100 ? "..." : ""}</p>
-        <button class="btn-primary" onclick="selectQuestion('${
-          doc.id
-        }')">Select This Question</button>
+        <p class="description">${question.description.substring(0, 100)}${question.description.length > 100 ? "..." : ""}</p>
       `;
       questionsContainer.appendChild(questionElement);
     });
+
+    // Add assign button
+    const assignBtn = document.createElement("button");
+    assignBtn.className = "btn-primary";
+    assignBtn.textContent = "Assign Selected Questions";
+    assignBtn.onclick = assignSelectedQuestions;
+    questionsContainer.appendChild(assignBtn);
+
     // Show status message if redirected here after unassign
     if (window.sessionStorage.getItem('unassignedStatus')) {
       showSuccess('You have been unassigned from your previous question.');
@@ -71,60 +110,51 @@ async function showAvailableQuestions() {
   }
 }
 
-// Student selects a question
-async function selectQuestion(questionId) {
-  if (!rollNumber) {
-    showError("Roll number not found. Please enter the exam again.");
+// Assign selected available questions to student
+async function assignSelectedQuestions() {
+  const checkboxes = document.querySelectorAll('.assign-checkbox:checked');
+  if (checkboxes.length === 0) {
+    showError("Please select at least one question to assign.");
     return;
   }
-
   try {
-    const questionRef = db
-      .collection("exams")
-      .doc(currentExamId)
-      .collection("questions")
-      .doc(questionId);
-
-    // Use transaction to ensure atomic update
-    await db.runTransaction(async (transaction) => {
-      const questionDoc = await transaction.get(questionRef);
-      if (
-        !questionDoc.exists ||
-        (questionDoc.data().assignedTo &&
-          questionDoc.data().assignedTo !== rollNumber)
-      ) {
-        throw "Question no longer available";
-      }
-      transaction.update(questionRef, { assignedTo: rollNumber });
+    const batch = db.batch();
+    checkboxes.forEach(cb => {
+      const qid = cb.value;
+      const ref = db.collection("exams").doc(currentExamId).collection("questions").doc(qid);
+      batch.update(ref, { assignedTo: rollNumber });
     });
-
-    // Show the selected question
-    currentQuestionId = questionId;
-    await showQuestion();
-
-    // ✅ Tell the extension to start recording (direct extension message)
-    if (typeof chrome !== "undefined" && chrome.runtime?.sendMessage) {
-      chrome.runtime.sendMessage({ type: "START_SCREEN_RECORDING" });
-    } else {
-      console.warn("Chrome runtime not available — running in standalone mode.");
-    }
-  } catch (error) {
-    console.error("Error selecting question:", error);
-    showError(
-      "This question is no longer available. Please select another one."
-    );
+    await batch.commit();
+    showSuccess("Questions assigned successfully!");
+    await showAssignedQuestions();
     await showAvailableQuestions();
+  } catch (error) {
+    showError("Failed to assign questions. Please try again.");
   }
 }
 
-// Show assigned question
-async function showQuestion() {
+// Unassign self from a question
+async function unassignSelf(questionId) {
+  try {
+    await db.collection("exams").doc(currentExamId).collection("questions").doc(questionId).update({
+      assignedTo: null
+    });
+    window.sessionStorage.setItem('unassignedStatus', '1');
+    await showAssignedQuestions();
+    await showAvailableQuestions();
+  } catch (error) {
+    showError("Failed to unassign yourself. Please try again.");
+  }
+}
+
+// Show details for a specific assigned question
+async function showQuestionDetails(questionId) {
   try {
     const questionDoc = await db
       .collection("exams")
       .doc(currentExamId)
       .collection("questions")
-      .doc(currentQuestionId)
+      .doc(questionId)
       .get();
 
     if (!questionDoc.exists) {
@@ -176,11 +206,10 @@ async function showQuestion() {
       }
     `;
 
-    // Hide selection and show question
+    // Show question view, hide selection
     document.getElementById("question-selection").style.display = "none";
     document.getElementById("question-view").style.display = "block";
   } catch (error) {
-    console.error("Error loading question:", error);
     showError("Failed to load question. Please try again.");
   }
 }
@@ -193,20 +222,6 @@ function showError(message) {
   document.querySelector("main").prepend(errorDiv);
   setTimeout(() => errorDiv.remove(), 5000);
 }
-
-// Optionally, if you want to allow students to unassign themselves, you could add a function like this:
-// (Not required unless you want students to unassign themselves.)
-// async function unassignSelf() {
-//   try {
-//     await db.collection("exams").doc(currentExamId).collection("questions").doc(currentQuestionId).update({
-//       assignedTo: null
-//     });
-//     window.sessionStorage.setItem('unassignedStatus', '1');
-//     window.location.href = window.location.pathname + '?examId=' + encodeURIComponent(currentExamId);
-//   } catch (error) {
-//     showError("Failed to unassign yourself. Please try again.");
-//   }
-// }
 
 function showSuccess(message) {
   const successDiv = document.createElement("div");

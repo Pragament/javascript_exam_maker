@@ -45,20 +45,14 @@ async function studentEnterExam() {
     
     const examId = examsSnapshot.docs[0].id;
     
-    // Check if student already has a question assigned
-    const assignedQuestion = await db.collection('exams').doc(examId)
+    // Check if student already has questions assigned (can be multiple)
+    const assignedQuestions = await db.collection('exams').doc(examId)
       .collection('questions')
       .where('assignedTo', '==', rollNumber)
-      .limit(1)
       .get();
     
-    if (!assignedQuestion.empty) {
-      // Redirect to question view with assigned question
-      window.location.href = `student.html?examId=${examId}&questionId=${assignedQuestion.docs[0].id}`;
-    } else {
-      // Redirect to available questions
-      window.location.href = `student.html?examId=${examId}`;
-    }
+    // Redirect to student.html with examId (list view will handle showing assigned questions)
+    window.location.href = `student.html?examId=${examId}`;
   } catch (error) {
     console.error("Error entering exam:", error);
     errorElement.textContent = 'Error entering exam. Please try again.';
